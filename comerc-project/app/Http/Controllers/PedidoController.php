@@ -3,46 +3,62 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PedidoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $pedidos = Pedido::all();
+        return response()->json($pedidos);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function show($id)
+    {
+        $pedido = Pedido::find($id);
+        if (!$pedido) {
+            return response()->json(['error' => 'Pedido não encontrado'], 404);
+        }
+        return response()->json($pedido);
+    }
+
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'cliente_id' => 'required',
+            'produto_id' => 'required',
+            'data_criacao' => 'required|date',
+        ]);
+
+        $pedido = Pedido::create($validatedData);
+        // Lógica para enviar e-mail ao cliente com os detalhes do pedido
+        return response()->json($pedido, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $pedido = Pedido::find($id);
+        if (!$pedido) {
+            return response()->json(['error' => 'Pedido não encontrado'], 404);
+        }
+
+        $validatedData = $request->validate([
+            'cliente_id' => 'required',
+            'produto_id' => 'required',
+            'data_criacao' => 'required|date',
+        ]);
+
+        $pedido->update($validatedData);
+        return response()->json($pedido);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $pedido = Pedido::find($id);
+        if (!$pedido) {
+            return response()->json(['error' => 'Pedido não encontrado'], 404);
+        }
+        $pedido->delete();
+        return response()->json(['message' => 'Pedido excluído com sucesso']);
     }
 }

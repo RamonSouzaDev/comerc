@@ -3,46 +3,61 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProdutoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $produtos = Produto::all();
+        return response()->json($produtos);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function show($id)
+    {
+        $produto = Produto::find($id);
+        if (!$produto) {
+            return response()->json(['error' => 'Produto não encontrado'], 404);
+        }
+        return response()->json($produto);
+    }
+
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'nome' => 'required',
+            'preco' => 'required',
+            'foto' => 'required',
+        ]);
+
+        $produto = Produto::create($validatedData);
+        return response()->json($produto, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $produto = Produto::find($id);
+        if (!$produto) {
+            return response()->json(['error' => 'Produto não encontrado'], 404);
+        }
+
+        $validatedData = $request->validate([
+            'nome' => 'required',
+            'preco' => 'required',
+            'foto' => 'required',
+        ]);
+
+        $produto->update($validatedData);
+        return response()->json($produto);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $produto = Produto::find($id);
+        if (!$produto) {
+            return response()->json(['error' => 'Produto não encontrado'], 404);
+        }
+        $produto->delete();
+        return response()->json(['message' => 'Produto excluído com sucesso']);
     }
 }

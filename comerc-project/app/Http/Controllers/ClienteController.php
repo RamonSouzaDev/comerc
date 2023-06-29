@@ -3,46 +3,73 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $clientes = Cliente::all();
+        return response()->json($clientes);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function show($id)
+    {
+        $cliente = Cliente::find($id);
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente não encontrado'], 404);
+        }
+        return response()->json($cliente);
+    }
+
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'nome' => 'required',
+            'email' => 'required|email|unique:clientes',
+            'telefone' => 'required',
+            'data_nascimento' => 'required|date',
+            'endereco' => 'required',
+            'complemento' => 'nullable',
+            'bairro' => 'nullable',
+            'cep' => 'required',
+            'data_cadastro' => 'nullable|date',
+        ]);
+
+        $cliente = Cliente::create($validatedData);
+        return response()->json($cliente, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $cliente = Cliente::find($id);
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente não encontrado'], 404);
+        }
+
+        $validatedData = $request->validate([
+            'nome' => 'required',
+            'email' => ['required', 'email', Rule::unique('clientes')->ignore($cliente->id)],
+            'telefone' => 'required',
+            'data_nascimento' => 'required|date',
+            'endereco' => 'required',
+            'complemento' => 'nullable',
+            'bairro' => 'nullable',
+            'cep' => 'required',
+            'data_cadastro' => 'nullable|date',
+        ]);
+
+        $cliente->update($validatedData);
+        return response()->json($cliente);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $cliente = Cliente::find($id);
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente não encontrado'], 404);
+        }
+        $cliente->delete();
+        return response()->json(['message' => 'Cliente excluído com sucesso']);
     }
 }
