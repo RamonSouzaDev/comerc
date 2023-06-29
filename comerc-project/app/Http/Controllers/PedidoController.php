@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DetalhesPedidoEmail;
+use App\Models\Cliente;
 
 class PedidoController extends Controller
 {
@@ -31,7 +34,20 @@ class PedidoController extends Controller
         ]);
 
         $pedido = Pedido::create($validatedData);
-        // Lógica para enviar e-mail ao cliente com os detalhes do pedido
+
+        // Envio de e-mail
+        $cliente = Cliente::find($pedido->cliente_id);
+
+        // Construção dos detalhes do pedido
+        $detalhesPedido = [
+            'pedido_id' => $pedido->id,
+            'cliente_nome' => $cliente->nome,
+            // Outras informações do pedido...
+        ];
+
+        // Envio do e-mail utilizando a classe de e-mail personalizada DetalhesPedidoEmail
+        Mail::to($cliente->email)->send(new DetalhesPedidoEmail($detalhesPedido));
+
         return response()->json($pedido, 201);
     }
 
